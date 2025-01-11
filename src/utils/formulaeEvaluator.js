@@ -4,10 +4,12 @@ export const evaluateFormulae = (formulae , getCellValue) => {
     try{
         //removing the '=' prefix
         const expression = formulae.substring(1);
+        //ex:- sum(A1:A5,B3,C1)
         if(expression.includes('(')){
             return evaluateFunction(expression, getCellValue);
         }
         //now ill handle the basic arithmetic operations and cell references
+        //ex:- =A1 + B2 - C3
         const evaluatedExpression = replaceReferences(expression , getCellValue);
         return eval(evaluatedExpression);
     } catch(error){
@@ -87,3 +89,11 @@ const expandRange = (start , end) =>{
     }
     return refs;
 }
+
+// Helper function to replace cell references with values
+const replaceReferences = (expression, getCellValue) => {
+    return expression.replace(/[A-Z]+\d+/g, (match) => {
+        const value = getCellValue(match);
+        return isNaN(value) ? 0 : value;
+    });
+};
