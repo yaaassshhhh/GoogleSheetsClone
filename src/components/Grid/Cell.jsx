@@ -1,6 +1,6 @@
 import React, { useState, useCallback } from 'react';
 import { useSelector , useDispatch } from 'react-redux'
-import { updateCell } from '../../../store/slices/spreadSheetSlice';
+import { updateCell } from '../../store/slices/spreadSheetSlice';
 
 const Cell = ({rowIndex , colIndex , isActive , onClick}) => {
   const dispatch  = useDispatch();
