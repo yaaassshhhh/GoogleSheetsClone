@@ -1,5 +1,5 @@
 import { createSlice } from "@reduxjs/toolkit";
-
+import { evaluateFormulae } from "../../utils/formulaeEvaluator";
 
 const initialState = {
 cells : {},
@@ -11,7 +11,8 @@ selection : {
     end : null
 },
 columnCount : 26,
-rowCount : 100
+rowCount : 100,
+error : null
 };
 
 export const spreadSheetSlice = createSlice({
@@ -29,10 +30,26 @@ export const spreadSheetSlice = createSlice({
                         italic : false,
                         fontSize : 12,
                         color : '#000000'
-                    }
-                }
+                    },
+                    dependencies : [],
+                    dependents : [] 
+                };
             }
-            state.cells[id] = {...state.cells[id] , value , formulae};
+            const getCellValue = (ref) => {
+                return state.cells[ref]?.value || 0;
+            };
+
+            const evaluatedValue = formulae ? 
+                evaluateFormulae(formulae, getCellValue) : 
+                value;
+
+            state.cells[id] = {
+                ...state.cells[id],
+                value: evaluatedValue,
+                formulae: formulae
+            };
+
+            updateDependentCells(state, id);
         },
         setActiveCell : (state , action) => {
             state.activeCell = action.payload;
@@ -47,8 +64,29 @@ export const spreadSheetSlice = createSlice({
                state.cells[id]  = {...state.cells[id] , ...format};  
             };
         },
+        setError: (state, action) => {
+            state.error = action.payload;
+        }
     }
 });
 
-export const {updateCell , setActiveCell , updateSelection , updateCellFormat} = spreadSheetSlice.actions;
+const updateDependentCells = (state , changedCellId) => {
+    const cell = state.cells[changedCellId];
+    if(!cell?.dependents?.length) return;
+
+    cell.dependents.forEach(dependentId => {
+        const dependentCell = state.cells[dependentId];
+        if(dependentCell?.formulae){
+            const getCellValue = (ref) => {
+                return state.cells[ref]?.value || 0; 
+            }
+            dependentCell.value = evaluateFormula(
+                dependentCell.formula,
+                getCellValue
+            );
+            updateDependentCells(state, dependentId);
+        }
+    });
+}
+export const {updateCell , setActiveCell , updateSelection , updateCellFormat, sertError} = spreadSheetSlice.actions;
 export default spreadSheetSlice.reducer;
