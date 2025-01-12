@@ -1,6 +1,16 @@
 import { createSlice } from "@reduxjs/toolkit";
 import { evaluateFormulae } from "../../utils/formulaeEvaluator";
 
+const initialCellFormat = {
+    bold: false,
+    italic: false,
+    underline: false,
+    fontSize: 12,
+    color: '#000000',
+    backgroundColor: '#ffffff',
+    align: 'left'
+  };
+
 const initialState = {
 cells : {},
 columns : {},
@@ -26,16 +36,15 @@ export const spreadSheetSlice = createSlice({
                     value : '',
                     formulae :'',
                     format : {
-                        bold : false,
-                        italic : false,
-                        fontSize : 12,
-                        color : '#000000'
+                        ...initialCellFormat
                     },
                     dependencies : [],
                     dependents : [] 
                 };
             }
             const getCellValue = (ref) => {
+                console.log('Getting value for cell:', ref);
+    console.log('Cell value:', state.cells[ref]?.value);
                 return state.cells[ref]?.value || 0;
             };
 
@@ -80,8 +89,8 @@ const updateDependentCells = (state , changedCellId) => {
             const getCellValue = (ref) => {
                 return state.cells[ref]?.value || 0; 
             }
-            dependentCell.value = evaluateFormula(
-                dependentCell.formula,
+            dependentCell.value = evaluateFormulae(
+                dependentCell.formulae,
                 getCellValue
             );
             updateDependentCells(state, dependentId);
