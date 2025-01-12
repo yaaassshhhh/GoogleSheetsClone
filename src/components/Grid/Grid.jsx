@@ -1,12 +1,16 @@
-import React, { useCallback } from 'react';
+import React, { useState , useCallback } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { setActiveCell, updateSelection } from '../../store/slices/spreadSheetSlice';
 import Cell from './Cell';
+import { useEffect } from 'react';
 const Grid = () => {
     const dispatch = useDispatch();
     const { columnCount, rowCount, activeCell, selection } = useSelector(
         (state) => state.spreadSheet
     );
+    const [isDragging, setIsDragging] = useState(false);
+    const [dragStart, setDragStart] = useState(null);
+
     const getColumnLabel = useCallback((index) => {
         let label = '';
         index += 1;
@@ -18,27 +22,74 @@ const Grid = () => {
         return label;
     }, []);
 
-    const handleClick = useCallback((rowIndex, colIndex) => {
+    const handleMouseDown = useCallback((rowIndex, colIndex, e) =>{
+        if(e.button !== 0) return; // to only handle left click
+
         const cellId = `${getColumnLabel(colIndex)}${rowIndex + 1}`;
         dispatch(setActiveCell(cellId));
-        dispatch(updateSelection({ start: { row: rowIndex, col: colIndex }, end: { row: rowIndex, col: colIndex } }));
+        setIsDragging(true);
+        setDragStart({ row: rowIndex, col: colIndex });
+        dispatch(updateSelection({
+            start : { row: rowIndex, col: colIndex },
+            end : { row: rowIndex, col: colIndex }
+        }));
+    }, [dispatch , getColumnLabel]);
 
-    }, [dispatch, getColumnLabel]);
+    const handleMouseMove = useCallback((rowIndex, colIndex) =>{
+        if(!isDragging || !dragStart) return;
+
+        dispatch(updateSelection({
+            start : dragStart,
+            end : { row: rowIndex, col: colIndex }
+        }));
+    }, [isDragging , dragStart, dispatch]);
+
+    const handleMouseUp = useCallback(() =>{
+        setIsDragging(false);
+        setDragStart(null);
+    },[]);
+
+    useEffect(() =>{
+        document.addEventListener('mouseup',handleMouseUp);
+        return () => document.removeEventListener('mouseup',handleMouseUp);
+    },[handleMouseUp]);
+    
+    const isCellSelected = useCallback((rowIndex, colIndex) =>{
+        if(!selection.start || !selection.end) return false;
+
+        const minRow = Math.min(selection.start.row,selection.end.row);
+        const maxRow = Math.max(selection.start.row,selection.end.row);
+        const maxCol = Math.max(selection.start.col,selection.end.col);
+        const minCol = Math.min(selection.start.col,selection.end.col);
+        
+        return rowIndex >= minRow && rowIndex <= maxRow && colIndex >= minCol && colIndex <= maxCol;
+
+    },[selection]);
+
+    // const handleClick = useCallback((rowIndex, colIndex) => {
+    //     const cellId = `${getColumnLabel(colIndex)}${rowIndex + 1}`;
+    //     dispatch(setActiveCell(cellId));
+    //     dispatch(updateSelection({ start: { row: rowIndex, col: colIndex }, end: { row: rowIndex, col: colIndex } }));
+
+    // }, [dispatch, getColumnLabel]);
 
     return (
-        <div className="overflow-auto h-full">
-            <div className="relative inline-block min-w-full">
+        
+        <div className="overflow-auto w-full h-full " 
+            onMouseUp={handleMouseUp}>
+            <div className="inline-block min-w-full relative">
                 {/* Header Row with corner cell */}
-                <div className="flex sticky top-0 z-10">
+                <div className="flex sticky top-0 z-10 bg-gray-50">
                     {/* Corner cell */}
-                    <div className="w-16 h-8 bg-gray-100 border-r border-b border-gray-300 sticky left-0 z-20" />
+                    <div className="w-16 h-8 bg-gray-100 border-r border-b border-gray-300 sticky left-0 z-20 shrink-0" />
                     
                     {/* Column headers */}
                     <div className="flex">
                         {Array.from({ length: columnCount }).map((_, index) => (
                             <div
                                 key={`header-${index}`}
-                                className="w-24 h-8 bg-gray-100 border-r border-b border-gray-300 flex items-center justify-center text-sm text-gray-600"
+                                className="w-24 h-8 bg-gray-100 border-r border-b border-gray-300 flex items-center justify-center text-sm text-gray-600
+                                shrink-0"
                             >
                                 {getColumnLabel(index)}
                             </div>
@@ -50,7 +101,7 @@ const Grid = () => {
                 {Array.from({ length: rowCount }).map((_, rowIndex) => (
                     <div key={`row-${rowIndex}`} className="flex">
                         {/* Row header */}
-                        <div className="sticky left-0 w-16 h-8 bg-gray-100 border-r border-b border-gray-300 flex items-center justify-center text-sm text-gray-600 z-10">
+                        <div className="sticky left-0 w-16 h-8 bg-gray-100 border-r border-b border-gray-300 flex items-center justify-center text-sm text-gray-600 z-10 shrink-0">
                             {rowIndex + 1}
                         </div>
 
@@ -58,12 +109,11 @@ const Grid = () => {
                         {Array.from({ length: columnCount }).map((_, colIndex) => (
                             <div
                                 key={`cell-${rowIndex}-${colIndex}`}
-                                className={`w-24 h-8 border-r border-b border-gray-300 ${
-                                    activeCell === `${getColumnLabel(colIndex)}${rowIndex + 1}` 
-                                        ? 'bg-blue-50' 
-                                        : 'bg-white'
+                                className={`w-24 h-8 border-r border-b border-gray-300 relative shrink-0 ${
+                                    isCellSelected(rowIndex , colIndex) ? 'bg-blue-50 ring-2 ring-blue-400 z-10' : 'bg-white'
                                 }`}
-                                onClick={() => handleClick(rowIndex, colIndex)}
+                                onMouseDown = {(e) => handleMouseDown(rowIndex, colIndex, e)}
+                                onMouseMove = {() => handleMouseMove(rowIndex, colIndex)}
                             >
                                 <Cell
                                     rowIndex={rowIndex}
