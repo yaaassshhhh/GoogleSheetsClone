@@ -6,6 +6,7 @@ const Cell = ({rowIndex , colIndex , isActive}) => {
   const dispatch  = useDispatch();
   const [isEditing , setIsEditing] = useState(false);
   const [editValue, setEditValue] = useState('');
+
   const cellId = `${String.fromCharCode(65 + colIndex)}${rowIndex + 1}`;
   const cellData = useSelector((state) => state.spreadSheet.cells[cellId]) ||{
     value : '',
@@ -17,22 +18,23 @@ const Cell = ({rowIndex , colIndex , isActive}) => {
         color : '#000000'
     }
   };
+
   const handleDoubleClick = useCallback(() => {
     setIsEditing(true);
     setEditValue(cellData?.formulae || cellData?.value || '');
   } , [cellData]);
   
-  const handleBlur = useCallback((e)=>{
+  const handleBlur = useCallback(()=>{
     setIsEditing(false);
-    const value = e.target.value;
     if (editValue !== (cellData?.formulae || cellData?.value || '')) {
       dispatch(updateCell({
-          id: cellId,
-          value: editValue,
-          formulae: editValue.startsWith('=') ? editValue : ''
+        id: cellId,
+        value: editValue,
+        formulae: editValue.startsWith('=') ? editValue : ''
       }));
-  }
-    dispatch(updateCell({ id: cellId, value, formulae: value.startsWith('=') ? value : '' }));
+    }
+    
+    dispatch(updateCell({ id: cellId, value : editValue, formulae: editValue.startsWith('=') ? editValue : '' }));
   }, [dispatch , cellId , editValue , cellData]);
 
 
@@ -62,6 +64,9 @@ const Cell = ({rowIndex , colIndex , isActive}) => {
         outline: 'none'
     };
 };
+console.log('Cell Data:', cellId, cellData);
+const format = cellData?.format || {};
+console.log('Cell Format:', format);
 
     return (
     <div
@@ -84,7 +89,22 @@ const Cell = ({rowIndex , colIndex , isActive}) => {
     ) : (
         <div
         className='w-full h-full px-2 overflow-hidden whitespace-nowrap flex items-center'
-        style = {getCellStyle()}
+        style = {
+          {
+                fontFamily: format.fontFamily || 'Arial',
+                fontSize: `${format.fontSize || 12}px`,
+                fontWeight: format.bold ? 'bold' : 'normal',
+                fontStyle: format.italic ? 'italic' : 'normal',
+                textDecoration: format.underline ? 'underline' : 'none',
+                color: format.color || '#000000',
+                textAlign: format.align || 'left',
+                padding: '0 4px',
+                display: 'flex',
+                alignItems: 'center',
+                backgroundColor: 'transparent',
+                minHeight: '100%'
+            }
+        }
         >
             {cellData.value}
         </div>

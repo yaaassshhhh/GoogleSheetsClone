@@ -8,7 +8,8 @@ const initialCellFormat = {
     fontSize: 12,
     color: '#000000',
     backgroundColor: '#ffffff',
-    align: 'left'
+    align: 'left',
+    fontFamily: 'Arial'
   };
 
 const initialState = {
@@ -69,8 +70,22 @@ export const spreadSheetSlice = createSlice({
         },
         updateCellFormat : (state , action) => {
             const {id , format} = action.payload;
-            if(state.cells[id]){
-               state.cells[id]  = {...state.cells[id] , ...format};  
+            console.log('Redux: Updating cell format:', id, format); // Debug log
+            // if(state.cells[id]){
+            //    state.cells[id]  = {...state.cells[id] , ...format};  
+            // };
+            if (!state.cells[id]) {
+                state.cells[id] = {
+                    value: '',
+                    formulae: '',
+                    format: {},
+                    dependencies: [],
+                    dependents: []
+                };
+            }            
+            state.cells[id].format = {
+                ...state.cells[id].format,
+                ...format
             };
         },
         setError: (state, action) => {
