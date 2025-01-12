@@ -56,9 +56,9 @@ const FormulaeBar = () => {
         <input
                 type="text"
                 className="flex-1 px-2 py-1 border border-gray-300 rounded focus:outline-none focus:border-blue-500"
-                value={formula}
-                onChange={handleFormulaChange}
-                onBlur={handleFormulaSubmit}
+                value={formulae}
+                onChange={handleFormulaeChange}
+                onBlur={handleFormulaeSubmit}
                 onKeyDown={handleKeyDown}
                 placeholder="Enter a value or formula"
             />
