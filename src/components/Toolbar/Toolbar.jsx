@@ -11,8 +11,8 @@ const Toolbar = () => {
   const activeCell = useSelector(state => state.spreadSheet.activeCell);
   const cellData = useSelector(state => activeCell ? state.spreadSheet.cells[activeCell] : null);
  
-  console.log('1-Active Cell:', activeCell);
-  console.log('2-Cell Data:', cellData);
+  // console.log('1-Active Cell:', activeCell); //Debug log
+  // console.log('2-Cell Data:', cellData); //Debug log
   
 
 
@@ -20,14 +20,14 @@ const Toolbar = () => {
     if (!activeCell) return;
 
     const cellCurrentFormat = cellData?.format || {};
-    console.log('3-Cell Format:', cellCurrentFormat);
+    // console.log('3-Cell Format:', cellCurrentFormat); //Debug log
     
     const newFormat = {
       ...cellCurrentFormat,
       ...formatUpdate
     };
 
-    console.log('4-New Format:', newFormat);
+    // console.log('4-New Format:', newFormat); //Debug log
 
     dispatch(updateCellFormat({
       id : activeCell,

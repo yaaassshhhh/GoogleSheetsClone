@@ -64,9 +64,9 @@ const Cell = ({rowIndex , colIndex , isActive}) => {
         outline: 'none'
     };
 };
-console.log('Cell Data:', cellId, cellData);
+// console.log('Cell Data:', cellId, cellData); //Debug log
 const format = cellData?.format || {};
-console.log('Cell Format:', format);
+// console.log('Cell Format:', format); //Debug log
 
     return (
     <div

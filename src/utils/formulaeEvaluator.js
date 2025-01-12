@@ -1,14 +1,14 @@
 export const evaluateFormulae = (formulae , getCellValue) => {
-    console.log('1-Formulae received:', formulae);
+    // console.log('1-Formulae received:', formulae);
     if(!formulae.startsWith('=')) return formulae;
 
     try{
-        console.log('2 - Formulae received in try:', formulae);
+        // console.log('2 - Formulae received in try:', formulae);
         //removing the '=' prefix
         const expression = formulae.substring(1);
         //ex:- sum(A1:A5,B3,C1)
         if(expression.includes('(')){
-            console.log('3 - Expression received and is aggregate:', expression);
+            // console.log('3 - Expression received and is aggregate:', expression);
             return evaluateFunction(expression, getCellValue);
         }
         //now ill handle the basic arithmetic operations and cell references
@@ -23,7 +23,7 @@ export const evaluateFormulae = (formulae , getCellValue) => {
 
 //function to evaluate functions
 const evaluateFunction = (expression , getCellValue) => {
-    console.log('4 - Expression received: in evaluateFn', expression);
+    // console.log('4 - Expression received: in evaluateFn', expression); Debug log
     const functionMap = {
         'SUM': calculateSum,
         'AVERAGE': calculateAverage,
@@ -39,15 +39,15 @@ const evaluateFunction = (expression , getCellValue) => {
     // match[2]: Arguments → "A1:A3" match = ["SUM(A1:A3)", "SUM", "A1:A3"]
 
     const match = expression.match(/^([A-Z]+)\((.*)\)$/i);
-    console.log('5 - Regex match result:', match);
-    console.log('5 - Regex match result:');
+    // console.log('5 - Regex match result:', match); 
+    // console.log('5 - Regex match result:');  //Debug log
 
     if(!match) return '#ERROR!';
     // const [_ , functionName , args] = match;
     const functionName = match[1].toUpperCase();
     const args = match[2].split(',').map(arg => arg.trim());
-    console.log('6-Function name:', functionName);
-    console.log('7-Arguments:', args);
+    // console.log('6-Function name:', functionName); //Debug log
+    // console.log('7-Arguments:', args); //Debug log
 
     if(!functionMap[functionName]) return '#INVALID!';
 
@@ -55,7 +55,7 @@ const evaluateFunction = (expression , getCellValue) => {
     //ex - for SUM(A1:A5,B3,C1) --> args = A1:A5,B3,C1 --> ['A1:A5' , 'B3','C1'] --> [[1,2,3,4,5],3,1] --> [1,2,3,4,5,3,1] --> (.filter is used to remove empty strings or null values) --> .map to number in case some are still strings
 
     const evaluatedArgs = args.map(arg =>{
-        console.log('8 - Processing argument:', arg);
+        // console.log('8 - Processing argument:', arg);
         const isCellReference = /[A-Z]/i.test(arg);
 
         if(arg.includes(':')){
@@ -72,18 +72,14 @@ const evaluateFunction = (expression , getCellValue) => {
                 const value = parseFloat(arg);
                 return [isNaN(value) ? 0 : value];
             }
-        // return [getCellValue(arg.trim())];
-        // const val = getCellValue(arg)
-        // console.log('Single cell value:', val);
-        // return [val];
     })
     .flat()
     .filter(value => value !== null && value !== '' && !isNaN(Number(value)))
     .map(Number);
 
-    console.log('9 - Final evaluated args:', evaluatedArgs);
+    // console.log('9 - Final evaluated args:', evaluatedArgs);
     const result = functionMap[functionName](evaluatedArgs);
-    console.log('10 - Final result:', result);
+    // console.log('10 - Final result:', result);
     return result;
     //calculateSum([1,2,3,4,5]) --> 15 , these function are implemented below
 };

@@ -25,28 +25,7 @@ const App = () => {
             <span className="text-sm text-gray-600">Format</span>
           </div>
         </div>
-    {/* Toolbar
-        <div className="flex items-center border-b border-gray-200 h-10 px-2 bg-gray-50 shrink-0">
-          <div className="flex items-center space-x-2">
-            <button className="p-1 hover:bg-gray-200 rounded">
-              <svg className="w-4 h-4 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-              </svg>
-            </button>
-            <div className="h-4 w-px bg-gray-300" />
-            <select className="text-sm border border-gray-300 rounded px-1 py-0.5">
-              <option>Arial</option>
-              <option>Times New Roman</option>
-            </select>
-            <select className="text-sm border border-gray-300 rounded px-1 py-0.5">
-              <option>10</option>
-              <option>11</option>
-              <option>12</option>
-              <option>14</option>
-            </select>
-          </div>
-        </div> */}
-        {/* formatting toolbar component */}
+
         <Toolbar />
 
         <FormulaeBar/>

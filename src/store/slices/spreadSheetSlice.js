@@ -43,11 +43,36 @@ export const spreadSheetSlice = createSlice({
                     dependents : [] 
                 };
             }
-            const getCellValue = (ref) => {
-                console.log('Getting value for cell:', ref);
-    console.log('Cell value:', state.cells[ref]?.value);
-                return state.cells[ref]?.value || 0;
-            };
+            //clearing old dependencies
+            state.cells[id].dependencies.forEach(depId =>{
+                if(state.cells[depId]){
+                    state.cells[depId].dependents = state.cells[depId].dependents.filter(d => d!=id);
+                }
+            })
+            // Updating dependencies if it's a formulae
+            if(formulae){
+                const newDependencies = extractCellRefs(formulae);
+                state.cells[id].dependencies = newDependencies;
+                //updating dependents for each dependency
+                newDependencies.forEach(depId =>{
+                    if(!state.cells[depId]){
+                        state.cells[depId]={
+                            value: '',
+                            formulae: '',
+                            format: { ...initialCellFormat },
+                            dependencies: [],
+                            dependents: []
+                        };
+                    }
+                    if(!state.cells[depId].dependents.includes(id)){
+                        state.cells[depId].dependents.push(id);
+                    }
+                });
+            } else {
+                state.cells[id].dependencies = [];
+            }
+
+            const getCellValue = (ref) => state.cells[ref]?.value || 0;
 
             const evaluatedValue = formulae ? 
                 evaluateFormulae(formulae, getCellValue) : 
@@ -70,10 +95,7 @@ export const spreadSheetSlice = createSlice({
         },
         updateCellFormat : (state , action) => {
             const {id , format} = action.payload;
-            console.log('Redux: Updating cell format:', id, format); // Debug log
-            // if(state.cells[id]){
-            //    state.cells[id]  = {...state.cells[id] , ...format};  
-            // };
+            // console.log('Redux: Updating cell format:', id, format); // Debug log
             if (!state.cells[id]) {
                 state.cells[id] = {
                     value: '',
@@ -94,6 +116,13 @@ export const spreadSheetSlice = createSlice({
     }
 });
 
+const extractCellRefs = (formulae) =>{
+    if(!formulae?.startsWith('=')) return [];
+
+    const matches = formulae.match(/[A-Z]+\d+/g) || [];
+
+    return [...new Set(matches)]; //Remove Duplicates
+}
 const updateDependentCells = (state , changedCellId) => {
     const cell = state.cells[changedCellId];
     if(!cell?.dependents?.length) return;
