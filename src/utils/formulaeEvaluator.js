@@ -29,7 +29,13 @@ const evaluateFunction = (expression , getCellValue) => {
         'AVERAGE': calculateAverage,
         'MAX': calculateMax,
         'MIN': calculateMin,
-        'COUNT': calculateCount
+        'COUNT': calculateCount,
+        'MEDIAN': calculateMedian,
+        'STDDEV': calculateStandardDeviation,
+        'VARIANCE': calculateVariance,
+        'PRODUCT': calculateProduct,
+        'MODE': calculateMode,
+        'RANGE': calculateRange
     };
 
     //will extract function name and parameters using regex
@@ -123,6 +129,43 @@ const calculateAverage = (numbers) => {
     if(numbers.length === 0) return 0;
     return calculateSum(numbers) / numbers.length;
 }
+const calculateMedian = (numbers) => {
+    if (numbers.length === 0) return 0;
+    const sorted = [...numbers].sort((a, b) => a - b);
+    const mid = Math.floor(sorted.length / 2);
+    return sorted.length % 2 !== 0 ? sorted[mid] : (sorted[mid - 1] + sorted[mid]) / 2;
+};
+
+const calculateStandardDeviation = (numbers) => {
+    if (numbers.length === 0) return 0;
+    const avg = calculateAverage(numbers);
+    const squareDiffs = numbers.map(num => Math.pow(num - avg, 2));
+    const avgSquareDiff = calculateAverage(squareDiffs);
+    return Math.sqrt(avgSquareDiff);
+};
+
+const calculateVariance = (numbers) => {
+    if (numbers.length === 0) return 0;
+    const avg = calculateAverage(numbers);
+    return numbers.reduce((variance, num) => variance + Math.pow(num - avg, 2), 0) / numbers.length;
+};
+const calculateProduct = (numbers) => {
+    return numbers.reduce((product, num) => product * num, 1);
+};
+
+const calculateMode = (numbers) => {
+    if (numbers.length === 0) return 0;
+    const frequency = {};
+    numbers.forEach(num => frequency[num] = (frequency[num] || 0) + 1);
+    const maxFreq = Math.max(...Object.values(frequency));
+    const modes = Object.keys(frequency).filter(num => frequency[num] === maxFreq);
+    return modes.length === 1 ? parseFloat(modes[0]) : modes.map(Number);
+};
+
+const calculateRange = (numbers) => {
+    if (numbers.length === 0) return 0;
+    return calculateMax(numbers) - calculateMin(numbers);
+};
 // const expandRange = (start , end) =>{
 //     const startCol = start.match(/[A-Z]+/)[0];
 //     const startRow = parseInt(start.match(/\d+/)[0]);
