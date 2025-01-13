@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useRef, useEffect } from 'react';
 import { useSelector , useDispatch } from 'react-redux'
 import { updateCell } from '../../store/slices/spreadSheetSlice';
 
@@ -6,6 +6,7 @@ const Cell = ({rowIndex , colIndex , isActive}) => {
   const dispatch  = useDispatch();
   const [isEditing , setIsEditing] = useState(false);
   const [editValue, setEditValue] = useState('');
+  const inputRef = useRef(null);
 
   const cellId = `${String.fromCharCode(65 + colIndex)}${rowIndex + 1}`;
   const cellData = useSelector((state) => state.spreadSheet.cells[cellId]) ||{
@@ -19,12 +20,26 @@ const Cell = ({rowIndex , colIndex , isActive}) => {
     }
   };
 
-  const handleDoubleClick = useCallback(() => {
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+        if (isActive && e.key === 'F2') {
+            setIsEditing(true);
+            setEditValue(cellData?.formulae || cellData?.value || '');
+        }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+}, [isActive, cellData]);
+
+  const handleDoubleClick = useCallback((e) => {
+    e.stopPropagation();
     setIsEditing(true);
     setEditValue(cellData?.formulae || cellData?.value || '');
   } , [cellData]);
   
   const handleBlur = useCallback(()=>{
+    if(!isEditing) return;
     setIsEditing(false);
     if (editValue !== (cellData?.formulae || cellData?.value || '')) {
       dispatch(updateCell({
@@ -35,15 +50,25 @@ const Cell = ({rowIndex , colIndex , isActive}) => {
     }
     
     dispatch(updateCell({ id: cellId, value : editValue, formulae: editValue.startsWith('=') ? editValue : '' }));
-  }, [dispatch , cellId , editValue , cellData]);
+  }, [dispatch , cellId , editValue , cellData, isEditing]);
 
 
   const handleKeyDown = useCallback((e) => {
-    if (e.key === 'Enter') {
+    if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
-      e.target.blur();
+      handleBlur();
+    }else if(e.key === 'Escape'){
+      e.preventDefault();
+      setIsEditing(false);
+      setEditValue(cellData?.formulae || cellData?.value || '');
     }
-  }, []);
+  }, [handleBlur, cellData]);
+
+  useEffect(() => {
+    if (isEditing && inputRef.current) {
+        inputRef.current.focus();
+    }
+}, [isEditing]);
 
   const getCellStyle = () => {
     const format = cellData?.format || {};
@@ -61,7 +86,10 @@ const Cell = ({rowIndex , colIndex , isActive}) => {
         alignItems: 'center',
         backgroundColor: 'transparent',
         border: 'none',
-        outline: 'none'
+        outline: 'none',
+        overflow: 'hidden',
+        whiteSpace: 'nowrap',
+        textOverflow: 'ellipsis'
     };
 };
 // console.log('Cell Data:', cellId, cellData); //Debug log
@@ -70,15 +98,16 @@ const format = cellData?.format || {};
 
     return (
     <div
-    className={`w-full h-full relative ${
-        isActive ? 'bg-blue-50' : 'bg-white'
+    className={`w-full h-full cursor-text relative ${
+        isActive ? 'bg-green-50' : 'bg-white'
       }`}
       onDoubleClick={handleDoubleClick}
       >
     {isEditing ? (
         <input
+        ref = {inputRef}
         type = "text"
-        className = "absolute inset-0 w-full h-full px-2 outline-none border-2 border-blue-500 "
+        className = "absolute inset-0 w-full h-full px-2 focus:outline-none border-2 border-green-500 "
         defaultValue = {cellData.formulae || cellData.value}
         autoFocus
         value={editValue}
@@ -90,20 +119,7 @@ const format = cellData?.format || {};
         <div
         className='w-full h-full px-2 overflow-hidden whitespace-nowrap flex items-center'
         style = {
-          {
-                fontFamily: format.fontFamily || 'Arial',
-                fontSize: `${format.fontSize || 12}px`,
-                fontWeight: format.bold ? 'bold' : 'normal',
-                fontStyle: format.italic ? 'italic' : 'normal',
-                textDecoration: format.underline ? 'underline' : 'none',
-                color: format.color || '#000000',
-                textAlign: format.align || 'left',
-                padding: '0 4px',
-                display: 'flex',
-                alignItems: 'center',
-                backgroundColor: 'transparent',
-                minHeight: '100%'
-            }
+          getCellStyle()
         }
         >
             {cellData.value}
