@@ -36,7 +36,7 @@ const Toolbar = () => {
   };
 
   return (
-    <div className="flex items-center space-x-2 px-2 py-1 border-b border-gray-200 bg-gray-50">
+    <div className="flex items-center space-x-2 px-2 py-1 border-b border-gray-300 bg-gray-50">
       <div className="flex items-center space-x-1 border-r border-gray-300 pr-2">
         <select
          value={cellData?.format?.fontFamily || 'Arial'}

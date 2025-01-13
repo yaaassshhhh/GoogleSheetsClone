@@ -41,8 +41,8 @@ const ResizeHandle = ({ type, index, initialSize, onResize }) => {
     <div
     className={`absolute ${
       type === 'column' 
-        ? 'cursor-col-resize right-0 top-0 w-1 h-full hover:bg-blue-400'
-        : 'cursor-row-resize bottom-0 left-0 w-full h-1 hover:bg-blue-400'
+        ? 'cursor-col-resize right-0 top-0 w-1 h-full hover:bg-green-400'
+        : 'cursor-row-resize bottom-0 left-0 w-full h-1 hover:bg-green-400'
     } bg-transparent hover:bg-opacity-50 z-20`}
     onMouseDown={handleMouseDown}
   />

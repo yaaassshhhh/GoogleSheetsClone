@@ -1,35 +1,43 @@
-import React from 'react'
+import React from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { addRow, deleteColumn, deleteRow, addColumn } from '../../store/slices/spreadSheetSlice';
 
 const DimenssionControls = () => {
-    const dispatch = useDispatch();
-    const {columnCount , rowCount} = useSelector((state) => state.spreadSheet);
+  const dispatch = useDispatch();
+  const { columnCount, rowCount } = useSelector((state) => state.spreadSheet);
+
+  const handleAddRow = () => {
+    dispatch(addRow({ index: rowCount }));
+  };
+
+  const handleDeleteRow = () => {
+    dispatch(deleteRow({ index: rowCount - 1 }));
+  };
+
+  const handleAddColumn = () => {
+    dispatch(addColumn({ index: columnCount }));
+  };
+
+  const handleDeleteColumn = () => {
+    dispatch(deleteColumn({ index: columnCount - 1 }));
+  };
+
   return (
-    <div className='flex space-x-4 p-2 bg-gray-100 border-b'>
-        <button onClick={dispatch(addRow({index : rowCount}))}>
-            Add Row
-        </button>
-        <button 
-        onClick={() => dispatch(deleteRow({ index: rowCount - 1 }))}
-        className="px-2 py-1 bg-red-500 text-white rounded hover:bg-red-600"
-      >
-        Delete Row
+    <div className='flex space-x-4 p-2 bg-gray-50 border-b border-gray-50'>
+      <button onClick={handleAddRow} className="px-2 py-1 bg-green-700 text-white rounded hover:bg-green-900">
+        Row++
       </button>
-      <button 
-        onClick={() => dispatch(addColumn({ index: columnCount }))}
-        className="px-2 py-1 bg-blue-500 text-white rounded hover:bg-blue-600"
-      >
-        Add Column
+      <button onClick={handleDeleteRow} className="px-2 py-1 bg-green-700 text-white rounded hover:bg-green-900">
+        Row--
       </button>
-      <button 
-        onClick={() => dispatch(deleteColumn({ index: columnCount - 1 }))}
-        className="px-2 py-1 bg-red-500 text-white rounded hover:bg-red-600"
-      >
-        Delete Column
+      <button onClick={handleAddColumn} className="px-2 py-1 bg-green-700 text-white rounded hover:bg-green-900">
+        Column++
+      </button>
+      <button onClick={handleDeleteColumn} className="px-2 py-1 bg-green-700 text-white rounded hover:bg-green-900">
+        Column--
       </button>
     </div>
-  )
+  );
 };
 
 export default DimenssionControls;
