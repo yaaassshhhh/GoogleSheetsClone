@@ -4,6 +4,7 @@ import {store} from './store'
 import Grid from './components/Grid/Grid'
 import FormulaeBar from './components/FormulaeBar/FormulaeBar'
 import Toolbar from './components/Toolbar/Toolbar'
+import DimenssionControls from './components/Grid/DimenssionControls'
 
 const App = () => {
   return (
@@ -29,7 +30,7 @@ const App = () => {
         <Toolbar />
 
         <FormulaeBar/>
-
+        <DimenssionControls/>
         <main className="flex-1 overflow-hidden bg-gray-50">
           <Grid />
         </main>
