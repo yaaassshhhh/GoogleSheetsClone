@@ -35,7 +35,22 @@ const App = () => {
         </main>
         <footer className="border-t border-gray-200 h-6 shrink-0 bg-gray-50">
           <div className="flex items-center h-full px-4">
-            <span className="text-xs text-gray-500">Developed By Yash Agrawal</span>            
+            <span className="text-sm text-gray-500">Developed By YASH AGRAWAL</span>   
+            <p className="ml-2 text-md text-gray-500" >|</p> 
+            <a
+          href="https://www.linkedin.com/in/yash-agrawal-724785244/"
+          target="_blank"
+        >
+          <span className="ml-1 text-sm text-gray-500">linkedin</span>
+        </a>      
+            <p className="ml-2 text-md text-gray-500" >|</p> 
+            <a
+          href="https://github.com/yaaassshhhh"
+          target="_blank"
+        >
+          <span className="ml-1 text-sm text-gray-500">Github</span>
+        </a>      
+        <p className="ml-1 text-md text-gray-500" >|</p> 
           </div>
         </footer>
       </div>
