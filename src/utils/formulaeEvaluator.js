@@ -1,30 +1,33 @@
-export const evaluateFormulae = (formulae , getCellValue) => {
-    // console.log('1-Formulae received:', formulae);
-    if(!formulae?.startsWith('=')) return formulae;
+import { data } from "autoprefixer";
 
-    try{
+export const evaluateFormulae = (formulae, getCellValue) => {
+    // console.log('1-Formulae received:', formulae);
+    if (!formulae?.startsWith('=')) return formulae;
+
+    try {
         // console.log('2 - Formulae received in try:', formulae);
         //removing the '=' prefix
         const expression = formulae.substring(1);
         //ex:- sum(A1:A5,B3,C1)
-        if(expression.includes('(')){
+        if (expression.includes('(')) {
             // console.log('3 - Expression received and is aggregate:', expression);
             return evaluateFunction(expression, getCellValue);
         }
         //now ill handle the basic arithmetic operations and cell references
         //ex:- =A1 + B2 - C3
-        const evaluatedExpression = replaceReferences(expression , getCellValue);
+        const evaluatedExpression = replaceReferences(expression, getCellValue);
         return eval(evaluatedExpression);
-    } catch(error){
+    } catch (error) {
         console.log('Error:', error);
         return '#ERROR!';
     }
 };
 
 //function to evaluate functions
-const evaluateFunction = (expression , getCellValue) => {
+const evaluateFunction = (expression, getCellValue) => {
     // console.log('4 - Expression received: in evaluateFn', expression); Debug log
     const functionMap = {
+        //Mathematical Functions
         'SUM': calculateSum,
         'AVERAGE': calculateAverage,
         'MAX': calculateMax,
@@ -36,12 +39,19 @@ const evaluateFunction = (expression , getCellValue) => {
         'PRODUCT': calculateProduct,
         'MODE': calculateMode,
         'RANGE': calculateRange,
-        // New data quality functions
+        //data quality functions
         'TRIM': calculateTrim,
         'UPPER': calculateUpper,
         'LOWER': calculateLower,
         'REMOVE_DUPLICATES': calculateRemoveDuplicates,
-        'FIND_AND_REPLACE': calculateFindAndReplace
+        'FIND_AND_REPLACE': calculateFindAndReplace,
+        //Charts and Graphs
+        'CHART': (args) => createChart(args, getCellValue, 'line'),
+        'LINECHART': (args) => createChart(args, getCellValue, 'line'),
+        'BARCHART': (args) => createChart(args, getCellValue, 'bar'),
+        'PIECHART': (args) => createChart(args, getCellValue, 'pie'),
+        'AREACHART': (args) => createChart(args, getCellValue, 'area')
+
     };
 
     //will extract function name and parameters using regex
@@ -51,20 +61,20 @@ const evaluateFunction = (expression , getCellValue) => {
     // match[2]: Arguments → "A1:A3" match = ["SUM(A1:A3)", "SUM", "A1:A3"]
 
     const match = expression.match(/^([A-Z]+)\((.*)\)$/i);
-    // console.log('5 - Regex match result:', match); 
     // console.log('5 - Regex match result:');  //Debug log
 
-    if(!match) return '#ERROR!';
+    if (!match) return '#ERROR!';
     // const [_ , functionName , args] = match;
     const functionName = match[1].toUpperCase();
     const args = match[2].split(',').map(arg => arg.trim());
     // console.log('6-Function name:', functionName); //Debug log
     // console.log('7-Arguments:', args); //Debug log
 
-    if(!functionMap[functionName]) return '#INVALID!';
+    if (!functionMap[functionName]) return '#INVALID!';
 
-    //now ill split the arguments and evaluate them
-    //ex - for SUM(A1:A5,B3,C1) --> args = A1:A5,B3,C1 --> ['A1:A5' , 'B3','C1'] --> [[1,2,3,4,5],3,1] --> [1,2,3,4,5,3,1] --> (.filter is used to remove empty strings or null values) --> .map to number in case some are still strings
+    if (['CHART', 'LINECHART', 'BARCHART', 'PIECHART', 'AREACHART'].includes(functionName)) {
+        return functionMap[functionName](args);
+    } 
 
     //special handling for data quality functions that work with ttext
     if (['TRIM', 'UPPER', 'LOWER'].includes(functionName)) {
@@ -76,14 +86,14 @@ const evaluateFunction = (expression , getCellValue) => {
     if (functionName === 'FIND_AND_REPLACE') {
         // Extract the cell reference and string literals
         const [cellRef, findText, replaceText] = args;
-        
+
         // Get the cell value
         const cellValue = getCellValue(cellRef);
-        
+
         // Remove quotes from string literals if present
         const find = findText.replace(/^['"]|['"]$/g, '');
         const replace = replaceText ? replaceText.replace(/^['"]|['"]$/g, '') : '';
-        
+
         return calculateFindAndReplace(cellValue, find, replace);
     }
 
@@ -94,28 +104,30 @@ const evaluateFunction = (expression , getCellValue) => {
         return calculateRemoveDuplicates(values);
     }
 
-    const evaluatedArgs = args.map(arg =>{
+    //now ill split the arguments and evaluate them
+    //ex - for SUM(A1:A5,B3,C1) --> args = A1:A5,B3,C1 --> ['A1:A5' , 'B3','C1'] --> [[1,2,3,4,5],3,1] --> [1,2,3,4,5,3,1] --> (.filter is used to remove empty strings or null values) --> .map to number in case some are still strings
+    const evaluatedArgs = args.map(arg => {
         // console.log('8 - Processing argument:', arg);
         const isCellReference = /[A-Z]/i.test(arg);
 
-        if(arg.includes(':')){
+        if (arg.includes(':')) {
             // const [start , end] = arg.split(':');
             // return expandRange(start.trim() , end.trim()).map(ref => getCellValue(ref));
-            return getRangeValues(arg ,getCellValue);
-        }else if(isCellReference) {
+            return getRangeValues(arg, getCellValue);
+        } else if (isCellReference) {
             // Handle cell reference
             const value = getCellValue(arg);
             return [value];
         }
-            else {
-                // Handle direct number
-                const value = parseFloat(arg);
-                return [isNaN(value) ? 0 : value];
-            }
+        else {
+            // Handle direct number
+            const value = parseFloat(arg);
+            return [isNaN(value) ? 0 : value];
+        }
     })
-    .flat()
-    .filter(value => value !== null && value !== '' && !isNaN(Number(value)))
-    .map(Number);
+        .flat()
+        .filter(value => value !== null && value !== '' && !isNaN(Number(value)))
+        .map(Number);
 
     // console.log('9 - Final evaluated args:', evaluatedArgs);
     const result = functionMap[functionName](evaluatedArgs);
@@ -155,7 +167,7 @@ const calculateFindAndReplace = (text, find, replace) => {
     return textStr.replaceAll(find, replace || '');
 };
 
-const getRangeValues = (range , getCellValue) => {
+const getRangeValues = (range, getCellValue) => {
     const [start, end] = range.split(':');
     const startRow = parseInt(start.match(/\d+/)[0], 10);
     const endRow = parseInt(end.match(/\d+/)[0], 10);
@@ -166,14 +178,15 @@ const getRangeValues = (range , getCellValue) => {
     for (let row = startRow; row <= endRow; row++) {
         for (let col = startCol.charCodeAt(0); col <= endCol.charCodeAt(0); col++) {
             const cell = String.fromCharCode(col) + row;
-            values.push(getCellValue(cell));
+            const value = getCellValue(cell);
+            values.push(value);
         }
     }
     return values;
 }
 //reduce: A higher-order function that iterates over the array, applying a reducer function to accumulate a result.0 is the initial value of the accumulator.
 const calculateSum = (numbers) => {
-    return numbers.reduce((sum , num) => sum + num, 0);
+    return numbers.reduce((sum, num) => sum + num, 0);
 };
 
 const calculateMax = (numbers) => {
@@ -191,7 +204,7 @@ const calculateCount = (numbers) => {
 };
 
 const calculateAverage = (numbers) => {
-    if(numbers.length === 0) return 0;
+    if (numbers.length === 0) return 0;
     return calculateSum(numbers) / numbers.length;
 }
 const calculateMedian = (numbers) => {
@@ -230,6 +243,51 @@ const calculateMode = (numbers) => {
 const calculateRange = (numbers) => {
     if (numbers.length === 0) return 0;
     return calculateMax(numbers) - calculateMin(numbers);
+};
+
+const createChart = (args,getCellValue,  defaultType = 'line') => {
+    try {
+        if (!args || args.length === 0) {
+            throw new Error('No range provided');
+        }
+        // const range = args[0];
+        // const type = args[1]?.replace(/['"]+/g, '') || defaultType;
+        // const labelsRange = args[2];
+         // First argument is the data range
+         const range = args[0];
+         // Second argument is the chart type (optional)
+         const type = args.length > 1 ? args[1].replace(/['"]/g, '').toLowerCase() : defaultType;
+         // Third argument can be the labels range (optional)
+         const labelsRange = args.length > 2 ? args[2] : null;
+
+         const values = getRangeValues(range, getCellValue)
+         .map(value => typeof value === 'string' ? parseFloat(value) : value)
+         .filter(value => !isNaN(value));
+
+         if (values.length === 0) {
+            throw new Error('No valid numeric values found in range');
+        }
+
+        let labels = [];
+        if (labelsRange) {
+            labels = getRangeValues(labelsRange, getCellValue);
+        } else {
+            labels = values.map((_, index) => `Item ${index + 1}`);
+        }
+        const chartData = values.map((value, index) => ({
+            name: labels[index] || `Item ${index + 1}`,
+            value: Number(value)
+        }));
+
+        return {
+            type: 'CHART',
+            chartType: type,
+            data: chartData
+        };
+    } catch (error) {
+        console.error('Chart creation error:', error);
+        return '#CHARTERROR!';
+    }
 };
 // const expandRange = (start , end) =>{
 //     const startCol = start.match(/[A-Z]+/)[0];
