@@ -74,13 +74,24 @@ const evaluateFunction = (expression , getCellValue) => {
 
     //special handling for Find and Replace
     if (functionName === 'FIND_AND_REPLACE') {
+        // Extract the cell reference and string literals
         const [cellRef, findText, replaceText] = args;
-        return calculateFindAndReplace([getCellValue(cellRef), findText.replace(/['"]/g, ''), replaceText.replace(/['"]/g, '')]);
+        
+        // Get the cell value
+        const cellValue = getCellValue(cellRef);
+        
+        // Remove quotes from string literals if present
+        const find = findText.replace(/^['"]|['"]$/g, '');
+        const replace = replaceText ? replaceText.replace(/^['"]|['"]$/g, '') : '';
+        
+        return calculateFindAndReplace(cellValue, find, replace);
     }
 
     //special handling for Remove Duplicate in a RANGE
     if (functionName === 'REMOVE_DUPLICATES') {
-        return calculateRemoveDuplicates([getRangeValues(args[0], getCellValue)]);
+        const range = args[0];
+        const values = getRangeValues(range, getCellValue);
+        return calculateRemoveDuplicates(values);
     }
 
     const evaluatedArgs = args.map(arg =>{
@@ -131,16 +142,17 @@ const calculateLower = (args) => {
     return String(value).toLowerCase();
 };
 
-const calculateRemoveDuplicates = (args) => {
-    const values = args[0];
+const calculateRemoveDuplicates = (values) => {
     if (!Array.isArray(values)) return values;
-    return [...new Set(values)].join(', ');
+    const uniqueValues = [...new Set(values.map(String))]; // Convert to strings to handle mixed types
+    return uniqueValues[0]; // Return first unique value for the cell
 };
 
-const calculateFindAndReplace = (args) => {
-    const [text, find, replace] = args;
+const calculateFindAndReplace = (text, find, replace) => {
     if (text === null || text === undefined) return '';
-    return String(text).replaceAll(find, replace || '');
+    const textStr = String(text);
+    if (!find) return textStr;
+    return textStr.replaceAll(find, replace || '');
 };
 
 const getRangeValues = (range , getCellValue) => {
