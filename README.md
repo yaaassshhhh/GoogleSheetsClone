@@ -1,8 +1,7 @@
 # React Spreadsheet Application
     - A powerful responsive web-based spreadsheet application built with React and Redux, featuring advanced data manipulation, visualization, and formatting capabilities.
     - After Cloning the repo or downloading the folder
-    - cd inside the folder
-    - then run the following commands 
+    - cd inside the folder and then run the following commands 
     - pnpm install
     - pnpm run dev
 # 🚀 Features
