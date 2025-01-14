@@ -226,8 +226,9 @@
     - 4 Regularly check for formula errors
     - 5 Use data quality functions to maintain clean data
 
-* Bonus Features Implemented includes
+* 📈 Bonus Features Implemented includes
 
-    - Implement additional mathematical and data quality functions.
+    - Implemented additional mathematical and data quality functions.
     - Added support for more complex formulas and cell referencing.
     - Incorporated data visualization capabilities. 
+
