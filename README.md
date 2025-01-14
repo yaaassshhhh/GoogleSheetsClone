@@ -228,7 +228,7 @@
 
 * 📈 Bonus Features Implemented includes
 
-    - Implement additional mathematical and data quality functions.
+    - Implemented additional mathematical and data quality functions.
     - Added support for more complex formulas and cell referencing.
     - Incorporated data visualization capabilities. 
 
