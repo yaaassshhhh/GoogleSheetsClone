@@ -1,6 +1,6 @@
 export const evaluateFormulae = (formulae , getCellValue) => {
     // console.log('1-Formulae received:', formulae);
-    if(!formulae.startsWith('=')) return formulae;
+    if(!formulae?.startsWith('=')) return formulae;
 
     try{
         // console.log('2 - Formulae received in try:', formulae);
@@ -35,7 +35,13 @@ const evaluateFunction = (expression , getCellValue) => {
         'VARIANCE': calculateVariance,
         'PRODUCT': calculateProduct,
         'MODE': calculateMode,
-        'RANGE': calculateRange
+        'RANGE': calculateRange,
+        // New data quality functions
+        'TRIM': calculateTrim,
+        'UPPER': calculateUpper,
+        'LOWER': calculateLower,
+        'REMOVE_DUPLICATES': calculateRemoveDuplicates,
+        'FIND_AND_REPLACE': calculateFindAndReplace
     };
 
     //will extract function name and parameters using regex
@@ -59,6 +65,23 @@ const evaluateFunction = (expression , getCellValue) => {
 
     //now ill split the arguments and evaluate them
     //ex - for SUM(A1:A5,B3,C1) --> args = A1:A5,B3,C1 --> ['A1:A5' , 'B3','C1'] --> [[1,2,3,4,5],3,1] --> [1,2,3,4,5,3,1] --> (.filter is used to remove empty strings or null values) --> .map to number in case some are still strings
+
+    //special handling for data quality functions that work with ttext
+    if (['TRIM', 'UPPER', 'LOWER'].includes(functionName)) {
+        const cellValue = getCellValue(args[0]);
+        return functionMap[functionName]([cellValue]);
+    }
+
+    //special handling for Find and Replace
+    if (functionName === 'FIND_AND_REPLACE') {
+        const [cellRef, findText, replaceText] = args;
+        return calculateFindAndReplace([getCellValue(cellRef), findText.replace(/['"]/g, ''), replaceText.replace(/['"]/g, '')]);
+    }
+
+    //special handling for Remove Duplicate in a RANGE
+    if (functionName === 'REMOVE_DUPLICATES') {
+        return calculateRemoveDuplicates([getRangeValues(args[0], getCellValue)]);
+    }
 
     const evaluatedArgs = args.map(arg =>{
         // console.log('8 - Processing argument:', arg);
@@ -88,6 +111,36 @@ const evaluateFunction = (expression , getCellValue) => {
     // console.log('10 - Final result:', result);
     return result;
     //calculateSum([1,2,3,4,5]) --> 15 , these function are implemented below
+};
+
+// Data Quality Function Implementations
+const calculateTrim = (args) => {
+    const value = args[0];
+    if (value === null || value === undefined) return '';
+    return String(value).trim();
+};
+
+const calculateUpper = (args) => {
+    const value = args[0];
+    if (value === null || value === undefined) return '';
+    return String(value).toUpperCase();
+};
+const calculateLower = (args) => {
+    const value = args[0];
+    if (value === null || value === undefined) return '';
+    return String(value).toLowerCase();
+};
+
+const calculateRemoveDuplicates = (args) => {
+    const values = args[0];
+    if (!Array.isArray(values)) return values;
+    return [...new Set(values)].join(', ');
+};
+
+const calculateFindAndReplace = (args) => {
+    const [text, find, replace] = args;
+    if (text === null || text === undefined) return '';
+    return String(text).replaceAll(find, replace || '');
 };
 
 const getRangeValues = (range , getCellValue) => {
